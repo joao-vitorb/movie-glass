@@ -25,8 +25,8 @@ const PromptInputForm = dynamic(
   () => import("./PromptInputForm").then((module) => module.PromptInputForm),
   {
     loading: () => (
-      <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
-        <div className="h-60 animate-pulse rounded-[22px] bg-white/[0.06]" />
+      <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
+        <div className="h-60 animate-pulse rounded-[22px] bg-white/6" />
       </div>
     ),
   },
@@ -39,8 +39,8 @@ const SearchResultsPreview = dynamic(
     ),
   {
     loading: () => (
-      <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
-        <div className="h-48 animate-pulse rounded-[22px] bg-white/[0.06]" />
+      <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
+        <div className="h-48 animate-pulse rounded-[22px] bg-white/6" />
       </div>
     ),
   },

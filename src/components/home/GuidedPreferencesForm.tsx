@@ -106,7 +106,7 @@ export function GuidedPreferencesForm({
   return (
     <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
       <div className="space-y-5">
-        <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
+        <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
           <h3 className="text-lg font-medium text-white">Tipo de mídia</h3>
           <p className="mt-1 text-sm text-white/58">
             Defina se a busca deve priorizar filmes, séries ou ambos.
@@ -124,7 +124,7 @@ export function GuidedPreferencesForm({
           </div>
         </div>
 
-        <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
+        <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-lg font-medium text-white">
@@ -135,7 +135,7 @@ export function GuidedPreferencesForm({
               </p>
             </div>
 
-            <span className="inline-flex self-start rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62 sm:self-auto">
+            <span className="inline-flex self-start rounded-full border border-white/16 bg-white/6 px-3 py-1 text-xs text-white/62 sm:self-auto">
               {getHelperText(
                 state.genres.length,
                 3,
@@ -156,7 +156,7 @@ export function GuidedPreferencesForm({
           </div>
         </div>
 
-        <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
+        <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
           <h3 className="text-lg font-medium text-white">Clima</h3>
           <p className="mt-1 text-sm text-white/58">
             Escolha a sensação principal que a obra deve transmitir.
@@ -174,7 +174,7 @@ export function GuidedPreferencesForm({
           </div>
         </div>
 
-        <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
+        <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
           <h3 className="text-lg font-medium text-white">Ritmo</h3>
           <p className="mt-1 text-sm text-white/58">
             Defina a velocidade narrativa que você quer encontrar.
@@ -192,7 +192,7 @@ export function GuidedPreferencesForm({
           </div>
         </div>
 
-        <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
+        <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
           <h3 className="text-lg font-medium text-white">
             Período de lançamento
           </h3>
@@ -213,7 +213,7 @@ export function GuidedPreferencesForm({
           </div>
         </div>
 
-        <div className="rounded-[26px] border border-white/18 bg-white/[0.08] p-5">
+        <div className="rounded-[26px] border border-white/18 bg-white/8 p-5">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-lg font-medium text-white">
@@ -224,7 +224,7 @@ export function GuidedPreferencesForm({
               </p>
             </div>
 
-            <span className="inline-flex self-start rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62 sm:self-auto">
+            <span className="inline-flex self-start rounded-full border border-white/16 bg-white/6 px-3 py-1 text-xs text-white/62 sm:self-auto">
               {getHelperText(
                 state.avoidGenres.length,
                 2,

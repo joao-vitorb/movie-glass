@@ -27,7 +27,7 @@ export function ModeSwitcher({ value, onChange }: ModeSwitcherProps) {
 
   return (
     <div
-      className="relative inline-flex self-start rounded-full border border-white/18 bg-white/[0.05] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md"
+      className="relative inline-flex self-start rounded-full border border-white/18 bg-white/5 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md"
       style={{ width: BUTTON_WIDTH * 2 + PADDING * 2 }}
     >
       <span
@@ -41,7 +41,7 @@ export function ModeSwitcher({ value, onChange }: ModeSwitcherProps) {
           transform: `translateX(${indicatorOffset}px)`,
         }}
       >
-        <span className="absolute inset-[1px] rounded-full bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_60%)] opacity-90" />
+        <span className="absolute inset-px rounded-full bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_60%)] opacity-90" />
         <span className="absolute inset-0 rounded-full bg-[linear-gradient(110deg,transparent_18%,rgba(255,255,255,0.18)_50%,transparent_82%)]" />
       </span>
 

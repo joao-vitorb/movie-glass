@@ -13,7 +13,7 @@ export function GlowOrb({ className = "", tone = "ember" }: GlowOrbProps) {
   return (
     <div className={`pointer-events-none absolute ${className}`}>
       <div
-        className={`h-full w-full rounded-full bg-gradient-to-br ${toneClasses[tone]} opacity-80 blur-2xl lg:blur-3xl`}
+        className={`h-full w-full rounded-full bg-linear-to-br ${toneClasses[tone]} opacity-80 blur-2xl lg:blur-3xl`}
       />
     </div>
   );

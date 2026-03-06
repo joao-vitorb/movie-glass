@@ -11,7 +11,7 @@ export function GlassPanel({
 }: GlassPanelProps) {
   return (
     <div
-      className={`glass-surface relative isolate overflow-hidden rounded-[24px] border border-white/18 sm:rounded-[30px] ${className}`}
+      className={`glass-surface relative isolate overflow-hidden rounded-3xl border border-white/18 sm:rounded-[30px] ${className}`}
       {...props}
     >
       <div className="pointer-events-none glass-overlay absolute inset-0 rounded-[inherit]" />
