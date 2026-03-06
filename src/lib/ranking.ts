@@ -1,20 +1,20 @@
 import type { StructuredFilters } from "@/types/filters";
-import type { MediaCardItem } from "@/types/media";
-
-export type RankedMediaItem = MediaCardItem & {
-  matchScore: number;
-};
+import type { MediaCardItem, RankedMediaItem } from "@/types/media";
 
 function normalizeText(value: string) {
   return value.toLowerCase().trim();
 }
 
 function getOverlapCount(source: string[], target: string[]) {
-  const normalizedTarget = target.map(normalizeText);
+  if (source.length === 0 || target.length === 0) {
+    return 0;
+  }
 
-  return source.filter((item) =>
-    normalizedTarget.includes(normalizeText(item))
-  ).length;
+  const normalizedTarget = new Set(target.map(normalizeText));
+
+  return source.reduce((count, item) => {
+    return normalizedTarget.has(normalizeText(item)) ? count + 1 : count;
+  }, 0);
 }
 
 function getKeywordScore(item: MediaCardItem, keywords: string[]) {
@@ -46,7 +46,7 @@ function getYearScore(item: MediaCardItem, filters: StructuredFilters) {
 
   const distance = Math.min(
     Math.abs(filters.yearFrom - item.year),
-    Math.abs(filters.yearTo - item.year)
+    Math.abs(filters.yearTo - item.year),
   );
 
   if (distance <= 2) {
@@ -66,7 +66,7 @@ function getPresentationScore(item: MediaCardItem) {
 
 function calculateMatchScore(
   item: MediaCardItem,
-  filters: StructuredFilters
+  filters: StructuredFilters,
 ) {
   const genreScore = getOverlapCount(item.genres, filters.genres) * 4;
   const avoidPenalty = getOverlapCount(item.genres, filters.avoidGenres) * 5;
@@ -75,13 +75,19 @@ function calculateMatchScore(
   const presentationScore = getPresentationScore(item);
 
   return Number(
-    (genreScore + keywordScore + yearScore + presentationScore - avoidPenalty).toFixed(1)
+    (
+      genreScore +
+      keywordScore +
+      yearScore +
+      presentationScore -
+      avoidPenalty
+    ).toFixed(1),
   );
 }
 
 export function rankMediaItems(
   items: MediaCardItem[],
-  filters: StructuredFilters
+  filters: StructuredFilters,
 ): RankedMediaItem[] {
   return items
     .map((item) => ({
@@ -140,7 +146,7 @@ function mixRankedMediaItems(items: RankedMediaItem[]) {
 export function buildRankedMediaFeed(
   items: MediaCardItem[],
   filters: StructuredFilters,
-  limit = 12
+  limit = 12,
 ) {
   const rankedItems = rankMediaItems(items, filters);
 

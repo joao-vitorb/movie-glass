@@ -12,6 +12,7 @@ export function SectionTitle({
   align = "left",
 }: SectionTitleProps) {
   const alignment = align === "center" ? "text-center" : "text-left";
+  const descriptionWidth = align === "center" ? "mx-auto max-w-2xl" : "max-w-3xl";
 
   return (
     <div className={alignment}>
@@ -21,12 +22,12 @@ export function SectionTitle({
         </span>
       ) : null}
 
-      <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+      <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
         {title}
       </h2>
 
       {description ? (
-        <p className="mt-4 max-w-2xl text-base leading-7 text-white/68 sm:text-lg">
+        <p className={`mt-4 text-sm leading-7 text-white/68 sm:text-base sm:leading-8 lg:text-lg ${descriptionWidth}`}>
           {description}
         </p>
       ) : null}

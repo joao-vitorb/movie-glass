@@ -1,12 +1,10 @@
-"use client";
-
-import { motion } from "framer-motion";
-import type { RankedMediaItem } from "@/lib/ranking";
+import Image from "next/image";
+import { memo } from "react";
+import type { RankedMediaItem } from "@/types/media";
 import { Badge } from "@/components/ui/Badge";
 
 type MediaCardProps = {
   item: RankedMediaItem;
-  index: number;
   onSelect: (item: RankedMediaItem) => void;
 };
 
@@ -22,33 +20,29 @@ function getCompatibilityLabel(score: number) {
   return "Vale explorar";
 }
 
-export function MediaCard({ item, index, onSelect }: MediaCardProps) {
+export const MediaCard = memo(function MediaCard({
+  item,
+  onSelect,
+}: MediaCardProps) {
   const imageUrl = item.posterUrl || item.backdropUrl;
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={() => onSelect(item)}
       aria-label={`Abrir detalhes de ${item.title}`}
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.34,
-        ease: "easeOut",
-        delay: index * 0.04,
-      }}
-      whileHover={{ y: -6, scale: 1.01 }}
-      className="group relative overflow-hidden rounded-[28px] border border-white/16 bg-white/[0.08] text-left shadow-[0_24px_60px_rgba(3,7,18,0.22)] transition focus:outline-none focus:ring-2 focus:ring-orange-400/35"
+      className="group relative overflow-hidden rounded-3xl border border-white/16 bg-white/8 text-left shadow-[0_18px_40px_rgba(3,7,18,0.22)] transition focus:outline-none focus:ring-2 focus:ring-orange-400/35 motion-safe:hover:-translate-y-1"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-300/0 via-orange-300/0 to-red-400/0 transition duration-500 group-hover:from-orange-300/6 group-hover:via-transparent group-hover:to-red-400/4" />
+      <div className="absolute inset-0 bg-linear-to-br from-orange-300/0 via-orange-300/0 to-red-400/0 transition duration-500 group-hover:from-orange-300/6 group-hover:via-transparent group-hover:to-red-400/4" />
 
-      <div className="relative h-72 overflow-hidden bg-slate-950/40">
+      <div className="relative aspect-4/5 overflow-hidden bg-slate-950/40 sm:aspect-16/10">
         {imageUrl ? (
-          <img
+          <Image
             src={imageUrl}
             alt={item.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            loading="lazy"
+            fill
+            sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
+            className="object-cover transition duration-500 motion-safe:group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-white/45">
@@ -56,7 +50,7 @@ export function MediaCard({ item, index, onSelect }: MediaCardProps) {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/35 to-transparent" />
 
         <div className="absolute left-4 right-4 top-4 flex flex-wrap gap-2">
           <Badge label={item.mediaType === "movie" ? "Filme" : "Série"} />
@@ -77,9 +71,9 @@ export function MediaCard({ item, index, onSelect }: MediaCardProps) {
       </div>
 
       <div className="relative p-5">
-        <h4 className="text-xl font-medium text-white">{item.title}</h4>
+        <h4 className="text-lg font-medium text-white sm:text-xl">{item.title}</h4>
 
-        <p className="mt-3 line-clamp-4 text-sm leading-7 text-white/66">
+        <p className="mt-3 line-clamp-3 text-sm leading-7 text-white/66 sm:line-clamp-4">
           {item.overview}
         </p>
 
@@ -99,6 +93,6 @@ export function MediaCard({ item, index, onSelect }: MediaCardProps) {
           </p>
         </div>
       </div>
-    </motion.button>
+    </button>
   );
-}
+});

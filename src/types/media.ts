@@ -18,6 +18,10 @@ export type MediaCardItem = {
   rawGenreIds: number[];
 };
 
+export type RankedMediaItem = MediaCardItem & {
+  matchScore: number;
+};
+
 export type MediaDetails = {
   id: number;
   mediaType: SearchableMediaType;
@@ -53,7 +57,7 @@ export type DiscoverRequestBody = {
 };
 
 export type DiscoverResponse = {
-  items: MediaCardItem[];
+  items: RankedMediaItem[];
 };
 
 export type DetailsResponse = {

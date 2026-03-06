@@ -135,7 +135,7 @@ export function GuidedPreferencesForm({
               </p>
             </div>
 
-            <span className="rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62">
+            <span className="inline-flex self-start rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62 sm:self-auto">
               {getHelperText(
                 state.genres.length,
                 3,
@@ -224,7 +224,7 @@ export function GuidedPreferencesForm({
               </p>
             </div>
 
-            <span className="rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62">
+            <span className="inline-flex self-start rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62 sm:self-auto">
               {getHelperText(
                 state.avoidGenres.length,
                 2,

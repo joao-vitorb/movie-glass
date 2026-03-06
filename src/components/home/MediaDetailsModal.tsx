@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
+import { useEffect, useId, useState } from "react";
 import type {
   MediaCardItem,
   MediaDetails,
@@ -34,34 +34,37 @@ function getLanguageLabel(language: string) {
   return language.toUpperCase();
 }
 
-export function MediaDetailsModal({
-  item,
-  onClose,
-}: MediaDetailsModalProps) {
+export function MediaDetailsModal({ item, onClose }: MediaDetailsModalProps) {
   const [details, setDetails] = useState<MediaDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const titleId = useId();
   const isOpen = Boolean(item);
 
   useEffect(() => {
-    if (!isOpen || !item) {
+    if (!item) {
       setDetails(null);
       setErrorMessage("");
       return;
     }
 
     const currentItem = item;
-    let isActive = true;
+    const controller = new AbortController();
 
     async function fetchDetails() {
       setIsLoading(true);
       setErrorMessage("");
+      setDetails(null);
 
       try {
         const response = await fetch(
-          `/api/details/${currentItem.mediaType}/${currentItem.id}`
+          `/api/details/${currentItem.mediaType}/${currentItem.id}`,
+          {
+            signal: controller.signal,
+          },
         );
+
         const contentType = response.headers.get("content-type") || "";
         const isJsonResponse = contentType.includes("application/json");
         const data = isJsonResponse
@@ -72,25 +75,23 @@ export function MediaDetailsModal({
           throw new Error(
             data && typeof data.error === "string"
               ? data.error
-              : "Não foi possível carregar os detalhes."
+              : "Não foi possível carregar os detalhes.",
           );
         }
 
-        if (isActive) {
-          setDetails(data?.item ?? null);
-        }
+        setDetails(data?.item ?? null);
       } catch (error) {
-        const message =
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+
+        setErrorMessage(
           error instanceof Error
             ? error.message
-            : "Ocorreu um erro ao carregar detalhes.";
-
-        if (isActive) {
-          setErrorMessage(message);
-          setDetails(null);
-        }
+            : "Ocorreu um erro ao carregar detalhes.",
+        );
       } finally {
-        if (isActive) {
+        if (!controller.signal.aborted) {
           setIsLoading(false);
         }
       }
@@ -99,9 +100,9 @@ export function MediaDetailsModal({
     fetchDetails();
 
     return () => {
-      isActive = false;
+      controller.abort();
     };
-  }, [isOpen, item]);
+  }, [item]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -124,93 +125,95 @@ export function MediaDetailsModal({
     };
   }, [isOpen, onClose]);
 
+  if (!isOpen || !item) {
+    return null;
+  }
+
   return (
-    <AnimatePresence>
-      {isOpen ? (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+    <div className="fixed inset-0 z-50 px-3 py-4 sm:px-4 sm:py-8">
+      <button
+        type="button"
+        aria-label="Fechar modal"
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/72 backdrop-blur-sm"
+      />
+
+      <div className="relative z-10 mx-auto flex h-full max-w-5xl items-center">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          className="glass-surface relative w-full overflow-hidden rounded-[28px] border border-white/16"
         >
-          <button
-            type="button"
-            aria-label="Fechar modal"
-            onClick={onClose}
-            className="absolute inset-0 bg-slate-950/72 backdrop-blur-md"
-          />
+          <div className="absolute right-4 top-4 z-20 sm:right-5 sm:top-5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-white/16 bg-slate-950/50 px-4 py-2 text-sm font-medium text-white/78 backdrop-blur-md transition duration-300 hover:bg-slate-950/70"
+            >
+              Fechar
+            </button>
+          </div>
 
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label={item ? `Detalhes de ${item.title}` : "Detalhes da mídia"}
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 18, scale: 0.98 }}
-            transition={{ duration: 0.28, ease: "easeOut" }}
-            className="glass-surface relative z-10 w-full max-w-5xl overflow-hidden rounded-[32px] border border-white/16"
-          >
-            <div className="absolute right-5 top-5 z-20">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-full border border-white/16 bg-slate-950/50 px-4 py-2 text-sm font-medium text-white/78 backdrop-blur-md transition duration-300 hover:bg-slate-950/70"
-              >
-                Fechar
-              </button>
-            </div>
-
+          <div className="max-h-[88vh] overflow-y-auto">
             {isLoading ? (
-              <div className="grid min-h-[520px] lg:grid-cols-[1.05fr_0.95fr]">
-                <div className="h-72 animate-pulse bg-white/[0.06] lg:h-full" />
-                <div className="space-y-5 p-6 sm:p-8">
-                  <div className="h-6 w-24 animate-pulse rounded-full bg-white/[0.06]" />
-                  <div className="h-10 w-3/4 animate-pulse rounded-full bg-white/[0.06]" />
-                  <div className="h-5 w-1/2 animate-pulse rounded-full bg-white/[0.06]" />
-                  <div className="h-24 w-full animate-pulse rounded-[24px] bg-white/[0.06]" />
-                  <div className="h-28 w-full animate-pulse rounded-[24px] bg-white/[0.06]" />
+              <div className="grid min-h-105 lg:grid-cols-[1.05fr_0.95fr]">
+                <div className="aspect-16/10 animate-pulse bg-white/6 lg:h-full lg:aspect-auto" />
+                <div className="space-y-5 p-5 sm:p-8">
+                  <div className="h-6 w-24 animate-pulse rounded-full bg-white/6" />
+                  <div className="h-10 w-3/4 animate-pulse rounded-full bg-white/6" />
+                  <div className="h-5 w-1/2 animate-pulse rounded-full bg-white/6" />
+                  <div className="h-24 w-full animate-pulse rounded-3'''xl bg-white/6" />
+                  <div className="h-28 w-full animate-pulse rounded-3xl bg-white/6" />
                 </div>
               </div>
             ) : errorMessage ? (
-              <div className="p-8">
-                <div className="rounded-[24px] border border-rose-200/16 bg-rose-200/10 p-5 text-sm leading-7 text-rose-100">
+              <div className="p-5 sm:p-8">
+                <div className="rounded-[20px] border border-rose-200/16 bg-rose-200/10 p-5 text-sm leading-7 text-rose-100">
                   {errorMessage}
                 </div>
               </div>
             ) : details ? (
               <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
-                <div className="relative min-h-[320px] overflow-hidden bg-slate-950/40">
+                <div className="relative min-h-65 overflow-hidden bg-slate-950/40 sm:min-h-80">
                   {details.backdropUrl || details.posterUrl ? (
-                    <img
+                    <Image
                       src={details.backdropUrl || details.posterUrl || ""}
                       alt={details.title}
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-cover"
                     />
                   ) : (
-                    <div className="flex h-full min-h-[320px] items-center justify-center px-6 text-center text-sm text-white/42">
+                    <div className="flex h-full min-h-65 items-center justify-center px-6 text-center text-sm text-white/42 sm:min-h-80">
                       Imagem indisponível
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/30 to-transparent" />
 
                   <div className="absolute bottom-5 left-5 flex flex-wrap gap-2">
                     <Badge
                       label={details.mediaType === "movie" ? "Filme" : "Série"}
                     />
                     <Badge
-                      label={details.year ? String(details.year) : "Ano desconhecido"}
+                      label={
+                        details.year ? String(details.year) : "Ano desconhecido"
+                      }
                     />
                     <Badge label={`Nota ${details.voteAverage.toFixed(1)}`} />
                   </div>
                 </div>
 
-                <div className="p-6 sm:p-8">
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/42">
+                <div className="p-5 sm:p-8">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-white/42 sm:text-xs">
                     detalhes completos
                   </p>
 
-                  <h3 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                  <h3
+                    id={titleId}
+                    className="mt-4 text-2xl font-semibold tracking-tight text-white sm:text-4xl"
+                  >
                     {details.title}
                   </h3>
 
@@ -229,8 +232,8 @@ export function MediaDetailsModal({
                   </div>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-[22px] border border-white/14 bg-slate-950/30 p-4">
-                      <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                    <div className="rounded-[20px] border border-white/14 bg-slate-950/30 p-4">
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
                         nota média
                       </p>
                       <p className="mt-2 text-lg font-medium text-white">
@@ -238,8 +241,8 @@ export function MediaDetailsModal({
                       </p>
                     </div>
 
-                    <div className="rounded-[22px] border border-white/14 bg-slate-950/30 p-4">
-                      <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                    <div className="rounded-[20px] border border-white/14 bg-slate-950/30 p-4">
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
                         tipo de mídia
                       </p>
                       <p className="mt-2 text-lg font-medium text-white">
@@ -248,8 +251,8 @@ export function MediaDetailsModal({
                     </div>
                   </div>
 
-                  <div className="mt-5 rounded-[24px] border border-white/14 bg-slate-950/30 p-5">
-                    <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                  <div className="mt-5 rounded-[22px] border border-white/14 bg-slate-950/30 p-5">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
                       sinopse
                     </p>
                     <p className="mt-3 text-sm leading-7 text-white/72">
@@ -257,8 +260,8 @@ export function MediaDetailsModal({
                     </p>
                   </div>
 
-                  <div className="mt-5 rounded-[24px] border border-white/14 bg-slate-950/30 p-5">
-                    <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                  <div className="mt-5 rounded-[22px] border border-white/14 bg-slate-950/30 p-5">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
                       gêneros
                     </p>
 
@@ -277,8 +280,8 @@ export function MediaDetailsModal({
 
                   {details.mediaType === "tv" ? (
                     <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                      <div className="rounded-[22px] border border-white/14 bg-slate-950/30 p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                      <div className="rounded-[20px] border border-white/14 bg-slate-950/30 p-4">
+                        <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
                           temporadas
                         </p>
                         <p className="mt-2 text-lg font-medium text-white">
@@ -286,8 +289,8 @@ export function MediaDetailsModal({
                         </p>
                       </div>
 
-                      <div className="rounded-[22px] border border-white/14 bg-slate-950/30 p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                      <div className="rounded-[20px] border border-white/14 bg-slate-950/30 p-4">
+                        <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
                           episódios
                         </p>
                         <p className="mt-2 text-lg font-medium text-white">
@@ -303,7 +306,7 @@ export function MediaDetailsModal({
                         href={details.homepage}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex rounded-full border border-white/16 bg-white/[0.06] px-5 py-3 text-sm font-medium text-white/78 transition duration-300 hover:bg-white/[0.1]"
+                        className="inline-flex rounded-full border border-white/16 bg-white/6 px-5 py-3 text-sm font-medium text-white/78 transition duration-300 hover:bg-white/10"
                       >
                         Abrir página oficial
                       </a>
@@ -312,9 +315,9 @@ export function MediaDetailsModal({
                 </div>
               </div>
             ) : null}
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

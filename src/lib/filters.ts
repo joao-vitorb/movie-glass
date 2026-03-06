@@ -35,7 +35,7 @@ function getYearRange(releaseWindow: ReleaseWindow) {
 }
 
 export function buildGuidedFilters(
-  state: GuidedFiltersState
+  state: GuidedFiltersState,
 ): StructuredFilters {
   const { yearFrom, yearTo } = getYearRange(state.releaseWindow);
 

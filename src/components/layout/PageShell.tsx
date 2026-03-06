@@ -7,46 +7,22 @@ type PageShellProps = {
 
 export function PageShell({ children }: PageShellProps) {
   return (
-    <main className="relative min-h-screen overflow-hidden px-6 py-6 text-white sm:px-8 lg:px-10">
-      <svg aria-hidden="true" className="absolute h-0 w-0">
-        <filter id="liquid-distortion">
-          <feTurbulence
-            type="turbulence"
-            baseFrequency="0.015"
-            numOctaves="2"
-            seed="2"
-            result="noise"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="noise"
-            scale="10"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
-      </svg>
-
+    <main className="relative min-h-screen overflow-x-hidden px-4 py-4 text-white sm:px-6 sm:py-6 lg:px-8">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 liquid-background" />
-        <div className="absolute inset-0 liquid-color-field animate-liquid-pan" />
         <div className="absolute inset-0 liquid-grid" />
 
         <GlowOrb
-          className="liquid-float-slow left-[4%] top-[6%] h-64 w-64"
+          className="left-[2%] top-[4%] h-44 w-44 sm:h-56 sm:w-56 lg:h-64 lg:w-64"
           tone="ember"
         />
         <GlowOrb
-          className="liquid-float-medium right-[6%] top-[12%] h-72 w-72"
+          className="right-[4%] bottom-[8%] h-52 w-52 sm:h-64 sm:w-64 lg:h-72 lg:w-72"
           tone="crimson"
-        />
-        <GlowOrb
-          className="liquid-float-fast bottom-[6%] left-[32%] h-60 w-60"
-          tone="copper"
         />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl flex-col">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-7xl flex-col">
         {children}
       </div>
     </main>

@@ -1,30 +1,19 @@
 import { NextResponse } from "next/server";
 import { interpretPromptToFilters } from "@/lib/interpret";
 
-type InterpretRequestBody = {
-  prompt?: string;
-};
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as InterpretRequestBody;
-    const prompt = body.prompt?.trim() ?? "";
+    const body = await request.json();
+    const prompt =
+      typeof body?.prompt === "string" ? body.prompt.trim() : "";
 
     if (prompt.length < 12) {
       return NextResponse.json(
-        {
-          error: "Escreva um pedido um pouco mais detalhado para a IA interpretar.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (prompt.length > 500) {
-      return NextResponse.json(
-        {
-          error: "Seu texto ficou grande demais. Tente resumir em até 500 caracteres.",
-        },
-        { status: 400 }
+        { error: "Escreva um pedido um pouco mais detalhado." },
+        { status: 400 },
       );
     }
 
@@ -32,16 +21,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ filters });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Não foi possível interpretar o texto agora.";
-
     return NextResponse.json(
       {
-        error: message,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível interpretar o texto.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

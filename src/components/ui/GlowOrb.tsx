@@ -4,16 +4,16 @@ type GlowOrbProps = {
 };
 
 const toneClasses = {
-  ember: "from-orange-300/45 via-amber-400/18 to-transparent",
-  crimson: "from-red-400/36 via-rose-500/14 to-transparent",
-  copper: "from-orange-400/34 via-red-500/12 to-transparent",
+  ember: "from-orange-300/28 via-amber-400/10 to-transparent",
+  crimson: "from-red-400/24 via-rose-500/8 to-transparent",
+  copper: "from-orange-400/24 via-red-500/8 to-transparent",
 };
 
 export function GlowOrb({ className = "", tone = "ember" }: GlowOrbProps) {
   return (
-    <div className={`pointer-events-none absolute liquid-distortion ${className}`}>
+    <div className={`pointer-events-none absolute ${className}`}>
       <div
-        className={`h-full w-full rounded-full bg-gradient-to-br ${toneClasses[tone]} opacity-95 blur-3xl`}
+        className={`h-full w-full rounded-full bg-gradient-to-br ${toneClasses[tone]} opacity-80 blur-2xl lg:blur-3xl`}
       />
     </div>
   );

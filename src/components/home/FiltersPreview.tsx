@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { Mood, StructuredFilters } from "@/types/filters";
 
 type FiltersPreviewProps = {
@@ -73,14 +76,16 @@ function getMoodListLabel(values: Mood[]) {
 }
 
 export function FiltersPreview({ filters }: FiltersPreviewProps) {
+  const [isJsonOpen, setIsJsonOpen] = useState(false);
+
   return (
     <div className="space-y-5">
-      <div className="rounded-[28px] border border-white/18 bg-white/[0.08] p-6">
+      <div className="rounded-[28px] border border-white/18 bg-white/8 p-5 sm:p-6">
         <p className="text-xs uppercase tracking-[0.22em] text-white/45">
           resumo atual
         </p>
 
-        <h3 className="mt-4 text-2xl font-medium text-white">
+        <h3 className="mt-4 text-xl font-medium text-white sm:text-2xl">
           Filtros estruturados da busca
         </h3>
 
@@ -153,18 +158,54 @@ export function FiltersPreview({ filters }: FiltersPreviewProps) {
         </div>
       </div>
 
-      <div className="rounded-[28px] border border-white/18 bg-white/[0.08] p-6">
-        <p className="text-xs uppercase tracking-[0.22em] text-white/45">
-          json alvo
-        </p>
+      <div className="rounded-[28px] border border-white/18 bg-white/8 p-5 sm:p-6">
+        <button
+          type="button"
+          onClick={() => setIsJsonOpen((current) => !current)}
+          aria-expanded={isJsonOpen}
+          className="flex w-full items-center justify-between gap-4 text-left"
+        >
+          <div>
+            <p className="text-xs uppercase tracking-[0.22em] text-white/45">
+              json alvo
+            </p>
 
-        <p className="mt-4 text-sm leading-7 text-white/68">
-          Este é o formato previsível que o restante da aplicação vai usar.
-        </p>
+            <p className="mt-4 text-sm leading-7 text-white/68">
+              Este é o formato previsível que o restante da aplicação vai usar.
+            </p>
+          </div>
 
-        <pre className="mt-4 overflow-x-auto rounded-[22px] border border-white/14 bg-slate-950/35 p-4 text-xs leading-6 text-white/72">
-          {JSON.stringify(filters, null, 2)}
-        </pre>
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/16 bg-white/6 text-white/72 transition duration-300 hover:bg-white/10">
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              className={`h-4 w-4 transition-transform duration-300 ease-out ${
+                isJsonOpen ? "rotate-180" : "rotate-0"
+              }`}
+              aria-hidden="true"
+            >
+              <path
+                d="M5 7.5L10 12.5L15 7.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </button>
+
+        <div
+          className={`mt-4 grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${
+            isJsonOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-60"
+          }`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <pre className="overflow-x-auto rounded-[22px] border border-white/14 bg-slate-950/35 p-4 text-xs leading-6 text-white/72">
+              {JSON.stringify(filters, null, 2)}
+            </pre>
+          </div>
+        </div>
       </div>
     </div>
   );

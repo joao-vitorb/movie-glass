@@ -1,37 +1,45 @@
 import { NextResponse } from "next/server";
 import { normalizeStructuredFilters } from "@/lib/interpret";
+import { buildRankedMediaFeed } from "@/lib/ranking";
 import { discoverMediaByFilters } from "@/lib/tmdb";
-import type { DiscoverRequestBody } from "@/types/media";
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as DiscoverRequestBody;
+    const body = await request.json().catch(() => null);
+    const filters = normalizeStructuredFilters(body?.filters);
 
-    const normalizedFilters = normalizeStructuredFilters(body.filters);
-
-    if (!normalizedFilters) {
+    if (!filters) {
       return NextResponse.json(
         {
-          error: "Os filtros enviados para a busca não são válidos.",
+          error: "Filtros inválidos.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        },
       );
     }
 
-    const items = await discoverMediaByFilters(normalizedFilters);
+    const mediaItems = await discoverMediaByFilters(filters);
+    const rankedItems = buildRankedMediaFeed(mediaItems, filters, 12);
 
-    return NextResponse.json({ items });
+    return NextResponse.json({
+      items: rankedItems,
+    });
   } catch (error) {
     const message =
       error instanceof Error
         ? error.message
-        : "Não foi possível buscar dados na TMDb agora.";
+        : "Ocorreu um erro ao buscar recomendações.";
 
     return NextResponse.json(
       {
         error: message,
       },
-      { status: 500 }
+      {
+        status: 500,
+      },
     );
   }
 }

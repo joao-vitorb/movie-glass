@@ -11,11 +11,11 @@ export function GlassPanel({
 }: GlassPanelProps) {
   return (
     <div
-      className={`glass-surface relative isolate overflow-hidden rounded-[30px] border border-white/18 ${className}`}
+      className={`glass-surface relative isolate overflow-hidden rounded-[24px] border border-white/18 sm:rounded-[30px] ${className}`}
       {...props}
     >
       <div className="pointer-events-none glass-overlay absolute inset-0 rounded-[inherit]" />
-      <div className="pointer-events-none glass-toplight absolute inset-x-8 top-0 h-px" />
+      <div className="pointer-events-none glass-toplight absolute inset-x-6 top-0 h-px sm:inset-x-8" />
       <div className="relative z-10">{children}</div>
     </div>
   );

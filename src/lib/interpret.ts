@@ -102,7 +102,7 @@ function sanitizeMoodArray(value: unknown) {
   return value
     .filter(
       (item): item is Mood =>
-        typeof item === "string" && allowedMoods.includes(item as Mood)
+        typeof item === "string" && allowedMoods.includes(item as Mood),
     )
     .slice(0, 3);
 }
@@ -138,7 +138,7 @@ function hasAnyExpression(text: string, expressions: string[]) {
 
 function applyPromptHeuristics(
   prompt: string,
-  filters: StructuredFilters
+  filters: StructuredFilters,
 ): StructuredFilters {
   const normalizedPrompt = normalizeText(prompt);
 
@@ -198,7 +198,7 @@ function applyPromptHeuristics(
 }
 
 export function normalizeStructuredFilters(
-  value: unknown
+  value: unknown,
 ): StructuredFilters | null {
   if (!isPlainObject(value)) {
     return null;
@@ -250,55 +250,71 @@ export async function interpretPromptToFilters(prompt: string) {
   const baseUrl = getOllamaBaseUrl();
   const model = getOllamaModel();
 
-  const response = await fetch(`${baseUrl}/api/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      stream: false,
-      format: interpretFiltersSchema,
-      messages: [
-        {
-          role: "system",
-          content:
-            "Você converte pedidos em linguagem natural sobre filmes e séries em filtros estruturados. Não recomende títulos. Não escreva explicações. Responda apenas com o objeto JSON no schema solicitado. Use mediaType com movie, tv ou both. Use moods apenas com dark, intelligent, light ou tense. Use pace apenas com slow, medium, fast ou any. Se o usuário negar lentidão, como em 'não muito lenta', 'não seja lenta' ou 'sem ser lenta', não use pace slow; prefira medium. Use yearFrom e yearTo com 0 quando o usuário não especificar período. Use includeAdult como false por padrão. Use language sempre como pt-BR. Use nomes de gêneros em inglês quando possível, como Thriller, Drama, Crime, Mystery, Science Fiction, Fantasy, Action, Romance, Comedy, Documentary, Animation e Reality TV.",
-        },
-        {
-          role: "user",
-          content: `Pedido do usuário: ${prompt}`,
-        },
-      ],
-      options: {
-        temperature: 0.1,
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+  try {
+    const response = await fetch(`${baseUrl}/api/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      signal: controller.signal,
+      body: JSON.stringify({
+        model,
+        stream: false,
+        format: interpretFiltersSchema,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Você converte pedidos em linguagem natural sobre filmes e séries em filtros estruturados. Não recomende títulos. Não escreva explicações. Responda apenas com o objeto JSON no schema solicitado. Use mediaType com movie, tv ou both. Use moods apenas com dark, intelligent, light ou tense. Use pace apenas com slow, medium, fast ou any. Se o usuário negar lentidão, como em 'não muito lenta', 'não seja lenta' ou 'sem ser lenta', não use pace slow; prefira medium. Use yearFrom e yearTo com 0 quando o usuário não especificar período. Use includeAdult como false por padrão. Use language sempre como pt-BR. Use nomes de gêneros em inglês quando possível, como Thriller, Drama, Crime, Mystery, Science Fiction, Fantasy, Action, Romance, Comedy, Documentary, Animation e Reality TV.",
+          },
+          {
+            role: "user",
+            content: `Pedido do usuário: ${prompt}`,
+          },
+        ],
+        options: {
+          temperature: 0.1,
+        },
+      }),
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (!response.ok) {
-    const errorMessage =
-      typeof data?.error === "string"
-        ? data.error
-        : "Ollama não conseguiu interpretar o texto.";
+    if (!response.ok) {
+      const errorMessage =
+        typeof data?.error === "string"
+          ? data.error
+          : "Ollama não conseguiu interpretar o texto.";
 
-    throw new Error(errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    const rawOutput = data?.message?.content;
+
+    if (typeof rawOutput !== "string" || !rawOutput.trim()) {
+      throw new Error("Ollama não retornou conteúdo interpretável");
+    }
+
+    const parsedOutput = JSON.parse(rawOutput);
+    const normalizedFilters = normalizeStructuredFilters(parsedOutput);
+
+    if (!normalizedFilters) {
+      throw new Error("A resposta do Ollama não pôde ser validada");
+    }
+
+    return applyPromptHeuristics(prompt, normalizedFilters);
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "O Ollama demorou demais para responder. Verifique se ele está rodando e se o modelo está carregado.",
+      );
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const rawOutput = data?.message?.content;
-
-  if (typeof rawOutput !== "string" || !rawOutput.trim()) {
-    throw new Error("Ollama não retornou conteúdo interpretável");
-  }
-
-  const parsedOutput = JSON.parse(rawOutput);
-  const normalizedFilters = normalizeStructuredFilters(parsedOutput);
-
-  if (!normalizedFilters) {
-    throw new Error("A resposta do Ollama não pôde ser validada");
-  }
-
-  return applyPromptHeuristics(prompt, normalizedFilters);
 }

@@ -1,14 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { buildRankedMediaFeed, type RankedMediaItem } from "@/lib/ranking";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Badge } from "@/components/ui/Badge";
 import type { StructuredFilters } from "@/types/filters";
-import type { DiscoverResponse } from "@/types/media";
+import type { DiscoverResponse, RankedMediaItem } from "@/types/media";
 import { LoadingState } from "./LoadingState";
 import { ResultsGrid } from "./ResultsGrid";
-import { MediaDetailsModal } from "./MediaDetailsModal";
 import { SearchSummary } from "./SearchSummary";
 import { EmptyResultsState } from "./EmptyResultsState";
 
@@ -16,23 +15,36 @@ type SearchResultsPreviewProps = {
   filters: StructuredFilters | null;
 };
 
+const MediaDetailsModal = dynamic(
+  () => import("./MediaDetailsModal").then((module) => module.MediaDetailsModal),
+  { ssr: false },
+);
+
 export function SearchResultsPreview({
   filters,
 }: SearchResultsPreviewProps) {
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+
   const [items, setItems] = useState<RankedMediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RankedMediaItem | null>(null);
 
-  const resultsRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
+    searchAbortRef.current?.abort();
     setItems([]);
     setErrorMessage("");
     setHasSearched(false);
     setSelectedItem(null);
   }, [filters]);
+
+  useEffect(() => {
+    return () => {
+      searchAbortRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     if (hasSearched && !isLoading) {
@@ -44,9 +56,13 @@ export function SearchResultsPreview({
   }, [hasSearched, isLoading]);
 
   async function handleSearch() {
-    if (!filters) {
+    if (!filters || isLoading) {
       return;
     }
+
+    searchAbortRef.current?.abort();
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
 
     setIsLoading(true);
     setErrorMessage("");
@@ -60,6 +76,7 @@ export function SearchResultsPreview({
         body: JSON.stringify({
           filters,
         }),
+        signal: controller.signal,
       });
 
       const contentType = response.headers.get("content-type") || "";
@@ -72,19 +89,17 @@ export function SearchResultsPreview({
         throw new Error(
           data && typeof data.error === "string"
             ? data.error
-            : "A rota /api/discover não respondeu como JSON."
+            : "A rota /api/discover não respondeu como JSON.",
         );
       }
 
-      const rankedItems = buildRankedMediaFeed(
-        Array.isArray(data?.items) ? data.items : [],
-        filters,
-        12
-      );
-
-      setItems(rankedItems);
+      setItems(Array.isArray(data?.items) ? data.items : []);
       setHasSearched(true);
     } catch (error) {
+      if (controller.signal.aborted) {
+        return;
+      }
+
       const message =
         error instanceof Error
           ? error.message
@@ -94,7 +109,9 @@ export function SearchResultsPreview({
       setItems([]);
       setHasSearched(true);
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -102,22 +119,22 @@ export function SearchResultsPreview({
     <>
       <div
         ref={resultsRef}
-        className="rounded-[28px] border border-white/18 bg-white/[0.08] p-6"
+        className="rounded-[24px] border border-white/18 bg-white/[0.08] p-5 sm:p-6"
       >
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-white/45">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-white/45 sm:text-xs">
               resultados recomendados
             </p>
 
-            <h3 className="mt-4 text-2xl font-medium text-white">
+            <h3 className="mt-4 text-xl font-medium text-white sm:text-2xl">
               Uma grade visual forte, com cards clicáveis e detalhes sob demanda
             </h3>
 
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/68">
               Agora você já pode buscar recomendações, entender os filtros
               ativos e abrir detalhes completos de cada item em um modal
-              elegante.
+              sob demanda.
             </p>
           </div>
 
@@ -141,7 +158,7 @@ export function SearchResultsPreview({
         ) : null}
 
         {errorMessage ? (
-          <div className="mt-6 rounded-[20px] border border-rose-200/16 bg-rose-200/10 px-4 py-3 text-sm text-rose-100">
+          <div className="mt-6 rounded-[18px] border border-rose-200/16 bg-rose-200/10 px-4 py-3 text-sm text-rose-100">
             {errorMessage}
           </div>
         ) : null}

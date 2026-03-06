@@ -32,6 +32,7 @@ export function PromptInputForm({ onFiltersReady }: PromptInputFormProps) {
     useState<StructuredFilters | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isExampleJsonOpen, setIsExampleJsonOpen] = useState(false);
 
   useEffect(() => {
     onFiltersReady?.(interpretedFilters);
@@ -97,13 +98,13 @@ export function PromptInputForm({ onFiltersReady }: PromptInputFormProps) {
     <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
       <form
         onSubmit={handleSubmit}
-        className="rounded-[28px] border border-white/18 bg-white/[0.08] p-6"
+        className="rounded-[28px] border border-white/18 bg-white/8 p-5 sm:p-6"
       >
         <p className="text-xs uppercase tracking-[0.22em] text-white/45">
           texto livre com ia
         </p>
 
-        <h3 className="mt-4 text-2xl font-medium text-white">
+        <h3 className="mt-4 text-xl font-medium text-white sm:text-2xl">
           Descreva o que você quer assistir
         </h3>
 
@@ -115,15 +116,15 @@ export function PromptInputForm({ onFiltersReady }: PromptInputFormProps) {
         <textarea
           value={promptText}
           onChange={(event) => setPromptText(event.target.value)}
-          className="glass-input mt-6 min-h-44 w-full resize-none rounded-[24px] px-4 py-4 text-sm leading-7 text-white placeholder:text-white/32 focus:outline-none"
+          className="glass-input mt-6 min-h-44 w-full resize-none rounded-3xl px-4 py-4 text-sm leading-7 text-white placeholder:text-white/32 focus:outline-none"
           placeholder="Exemplo: quero um filme de ficção científica, inteligente, bonito visualmente e que não seja infantil"
         />
 
         <div className="mt-4 flex flex-wrap gap-3">
-          <span className="rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62">
+          <span className="rounded-full border border-white/16 bg-white/6 px-3 py-1 text-xs text-white/62">
             {promptLength} caracteres
           </span>
-          <span className="rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs text-white/62">
+          <span className="rounded-full border border-white/16 bg-white/6 px-3 py-1 text-xs text-white/62">
             {promptWords} palavras
           </span>
         </div>
@@ -146,7 +147,7 @@ export function PromptInputForm({ onFiltersReady }: PromptInputFormProps) {
           <button
             type="button"
             onClick={clearInterpretation}
-            className="rounded-full border border-white/16 bg-white/[0.06] px-5 py-3 text-sm font-medium text-white/72 transition duration-300 hover:bg-white/[0.1]"
+            className="rounded-full border border-white/16 bg-white/6 px-5 py-3 text-sm font-medium text-white/72 transition duration-300 hover:bg-white/10"
           >
             Limpar resultado
           </button>
@@ -157,28 +158,68 @@ export function PromptInputForm({ onFiltersReady }: PromptInputFormProps) {
         <FiltersPreview filters={interpretedFilters} />
       ) : (
         <div className="space-y-5">
-          <div className="rounded-[28px] border border-white/18 bg-white/[0.08] p-6">
+          <div className="rounded-[28px] border border-white/18 bg-white/8 p-5 sm:p-6">
             <p className="text-xs uppercase tracking-[0.22em] text-white/45">
               suas preferências
             </p>
 
             <p className="mt-4 text-sm leading-7 text-white/72">
-              Aqui serão exibidas as preferências que a IA conseguiu interpretar do seu texto, revise antes de gerar as recomendações.
+              Aqui serão exibidas as preferências que a IA conseguiu interpretar
+              do seu texto, revise antes de gerar as recomendações.
             </p>
           </div>
 
-          <div className="rounded-[28px] border border-white/18 bg-white/[0.08] p-6">
-            <p className="text-xs uppercase tracking-[0.22em] text-white/45">
-              json alvo
-            </p>
+          <div className="rounded-[28px] border border-white/18 bg-white/8 p-5 sm:p-6">
+            <button
+              type="button"
+              onClick={() => setIsExampleJsonOpen((current) => !current)}
+              aria-expanded={isExampleJsonOpen}
+              className="flex w-full items-center justify-between gap-4 text-left"
+            >
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-white/45">
+                  json alvo
+                </p>
 
-            <p className="mt-4 text-sm leading-7 text-white/68">
-              Este é o formato previsível que o restante da aplicação vai usar.
-            </p>
+                <p className="mt-4 text-sm leading-7 text-white/68">
+                  Este é o formato previsível que o restante da aplicação vai
+                  usar.
+                </p>
+              </div>
 
-            <pre className="mt-4 overflow-x-auto rounded-[22px] border border-white/14 bg-slate-950/35 p-4 text-xs leading-6 text-white/72">
-              {JSON.stringify(exampleTarget, null, 2)}
-            </pre>
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/16 bg-white/6 text-white/72 transition duration-300 hover:bg-white/10">
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className={`h-4 w-4 transition-transform duration-300 ease-out ${
+                    isExampleJsonOpen ? "rotate-180" : "rotate-0"
+                  }`}
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M5 7.5L10 12.5L15 7.5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </button>
+
+            <div
+              className={`mt-4 grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                isExampleJsonOpen
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-60"
+              }`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <pre className="overflow-x-auto rounded-[22px] border border-white/14 bg-slate-950/35 p-4 text-xs leading-6 text-white/72">
+                  {JSON.stringify(exampleTarget, null, 2)}
+                </pre>
+              </div>
+            </div>
           </div>
         </div>
       )}

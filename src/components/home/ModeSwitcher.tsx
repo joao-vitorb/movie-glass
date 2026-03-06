@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 export type DiscoveryMode = "guided" | "prompt";
 
 type ModeSwitcherProps = {
@@ -20,9 +18,33 @@ const modes = [
   },
 ];
 
+const BUTTON_WIDTH = 148;
+const PADDING = 4;
+
 export function ModeSwitcher({ value, onChange }: ModeSwitcherProps) {
+  const activeIndex = modes.findIndex((mode) => mode.value === value);
+  const indicatorOffset = activeIndex * BUTTON_WIDTH;
+
   return (
-    <div className="inline-flex rounded-full border border-white/18 bg-white/[0.06] p-1">
+    <div
+      className="relative inline-flex self-start rounded-full border border-white/18 bg-white/[0.05] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md"
+      style={{ width: BUTTON_WIDTH * 2 + PADDING * 2 }}
+    >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute rounded-full border border-white/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.08))] shadow-[inset_0_1px_0_rgba(255,255,255,0.32),inset_0_-1px_0_rgba(255,255,255,0.05),0_12px_32px_rgba(255,255,255,0.08),0_10px_30px_rgba(0,0,0,0.18)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+        style={{
+          width: BUTTON_WIDTH,
+          top: PADDING,
+          left: PADDING,
+          bottom: PADDING,
+          transform: `translateX(${indicatorOffset}px)`,
+        }}
+      >
+        <span className="absolute inset-[1px] rounded-full bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_60%)] opacity-90" />
+        <span className="absolute inset-0 rounded-full bg-[linear-gradient(110deg,transparent_18%,rgba(255,255,255,0.18)_50%,transparent_82%)]" />
+      </span>
+
       {modes.map((mode) => {
         const isActive = value === mode.value;
 
@@ -31,23 +53,14 @@ export function ModeSwitcher({ value, onChange }: ModeSwitcherProps) {
             key={mode.value}
             type="button"
             onClick={() => onChange(mode.value)}
-            className="relative rounded-full px-4 py-2.5 text-sm font-medium"
+            className="relative z-10 flex h-14 items-center justify-center whitespace-nowrap rounded-full px-5 text-sm font-medium"
+            style={{ width: BUTTON_WIDTH }}
           >
-            {isActive ? (
-              <motion.span
-                layoutId="active-mode-pill"
-                className="absolute inset-0 rounded-full border border-white/18 bg-white/[0.12] shadow-[0_8px_24px_rgba(255,255,255,0.08)]"
-                transition={{
-                  type: "spring",
-                  stiffness: 320,
-                  damping: 28,
-                }}
-              />
-            ) : null}
-
             <span
-              className={`relative z-10 transition ${
-                isActive ? "text-white" : "text-white/55"
+              className={`transition-all duration-300 ease-out ${
+                isActive
+                  ? "text-white drop-shadow-[0_1px_10px_rgba(255,255,255,0.16)]"
+                  : "text-white/58"
               }`}
             >
               {mode.label}

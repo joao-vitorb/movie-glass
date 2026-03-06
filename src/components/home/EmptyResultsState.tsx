@@ -2,12 +2,12 @@ import { Badge } from "@/components/ui/Badge";
 
 export function EmptyResultsState() {
   return (
-    <div className="rounded-[24px] border border-white/16 bg-slate-950/30 p-6">
-      <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+    <div className="rounded-3xl border border-white/16 bg-slate-950/30 p-5 sm:p-6">
+      <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
         nenhum resultado encontrado
       </p>
 
-      <h4 className="mt-4 text-xl font-medium text-white">
+      <h4 className="mt-4 text-lg font-medium text-white sm:text-xl">
         Não encontramos algo forte com esses filtros
       </h4>
 

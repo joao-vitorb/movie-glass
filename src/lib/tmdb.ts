@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { StructuredFilters } from "@/types/filters";
 import type {
   MediaCardItem,
@@ -85,7 +87,7 @@ let movieGenreMapCache: GenreMap | null = null;
 let tvGenreMapCache: GenreMap | null = null;
 
 function getTmdbReadToken() {
-  const token = process.env.TMDB_API_READ_TOKEN;
+  const token = process.env.TMDB_API_READ_TOKEN?.trim();
 
   if (!token) {
     throw new Error("TMDB_API_READ_TOKEN não configurado");
@@ -96,7 +98,7 @@ function getTmdbReadToken() {
 
 function buildTmdbImageUrl(
   filePath: string | null,
-  size: "w500" | "w780" = "w500"
+  size: "w500" | "w780" = "w500",
 ) {
   if (!filePath) {
     return null;
@@ -105,7 +107,11 @@ function buildTmdbImageUrl(
   return `https://image.tmdb.org/t/p/${size}${filePath}`;
 }
 
-async function tmdbFetch<T>(path: string, params?: URLSearchParams): Promise<T> {
+async function tmdbFetch<T>(
+  path: string,
+  params?: URLSearchParams,
+  revalidate = 1800,
+): Promise<T> {
   const token = getTmdbReadToken();
   const url = new URL(`${TMDB_API_BASE_URL}${path}`);
 
@@ -119,10 +125,12 @@ async function tmdbFetch<T>(path: string, params?: URLSearchParams): Promise<T> 
       Authorization: `Bearer ${token}`,
       accept: "application/json",
     },
-    cache: "no-store",
+    next: {
+      revalidate,
+    },
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
 
   if (!response.ok) {
     const message =
@@ -152,7 +160,7 @@ function createGenreMap(data: GenreListResponse): GenreMap {
 }
 
 async function getGenreMap(
-  mediaType: SearchableMediaType
+  mediaType: SearchableMediaType,
 ): Promise<GenreMap> {
   if (mediaType === "movie" && movieGenreMapCache) {
     return movieGenreMapCache;
@@ -168,7 +176,8 @@ async function getGenreMap(
 
   const data = await tmdbFetch<GenreListResponse>(
     `/genre/${mediaType}/list`,
-    params
+    params,
+    86400,
   );
 
   const genreMap = createGenreMap(data);
@@ -183,20 +192,23 @@ async function getGenreMap(
 }
 
 function resolveGenreIds(names: string[], genreMap: GenreMap) {
-  return names
-    .map((name) => genreMap.byName[name.toLowerCase()])
-    .filter((value): value is number => typeof value === "number");
+  return [...new Set(
+    names
+      .map((name) => genreMap.byName[name.toLowerCase()])
+      .filter((value): value is number => typeof value === "number"),
+  )];
 }
 
 function buildDiscoverParams(
   filters: StructuredFilters,
   mediaType: SearchableMediaType,
-  genreMap: GenreMap
+  genreMap: GenreMap,
 ) {
   const params = new URLSearchParams({
-    language: "pt-BR",
+    language: filters.language || "pt-BR",
     include_adult: String(filters.includeAdult),
     sort_by: "popularity.desc",
+    "vote_count.gte": "80",
     page: "1",
   });
 
@@ -256,7 +268,7 @@ function formatMovieRuntime(runtime: number | null) {
 function formatTvRuntime(
   episodeRunTime: number[],
   seasonsCount: number,
-  episodesCount: number
+  episodesCount: number,
 ) {
   const firstRuntime = episodeRunTime[0];
 
@@ -277,7 +289,7 @@ function formatTvRuntime(
 
 function normalizeMovieItem(
   item: TmdbMovieItem,
-  genreMap: GenreMap
+  genreMap: GenreMap,
 ): MediaCardItem {
   return {
     id: item.id,
@@ -357,7 +369,7 @@ function normalizeTvDetails(item: TmdbTvDetails): MediaDetails {
     runtimeLabel: formatTvRuntime(
       item.episode_run_time,
       item.number_of_seasons,
-      item.number_of_episodes
+      item.number_of_episodes,
     ),
     seasonsCount: Number(item.number_of_seasons ?? 0),
     episodesCount: Number(item.number_of_episodes ?? 0),
@@ -369,7 +381,8 @@ async function discoverMovies(filters: StructuredFilters) {
   const params = buildDiscoverParams(filters, "movie", genreMap);
   const data = await tmdbFetch<TmdbListResponse<TmdbMovieItem>>(
     "/discover/movie",
-    params
+    params,
+    900,
   );
 
   return data.results
@@ -382,7 +395,8 @@ async function discoverTv(filters: StructuredFilters) {
   const params = buildDiscoverParams(filters, "tv", genreMap);
   const data = await tmdbFetch<TmdbListResponse<TmdbTvItem>>(
     "/discover/tv",
-    params
+    params,
+    900,
   );
 
   return data.results
@@ -409,17 +423,17 @@ export async function discoverMediaByFilters(filters: StructuredFilters) {
 
 export async function getMediaDetailsById(
   mediaType: SearchableMediaType,
-  id: number
+  id: number,
 ) {
   const params = new URLSearchParams({
     language: "pt-BR",
   });
 
   if (mediaType === "movie") {
-    const data = await tmdbFetch<TmdbMovieDetails>(`/movie/${id}`, params);
+    const data = await tmdbFetch<TmdbMovieDetails>(`/movie/${id}`, params, 21600);
     return normalizeMovieDetails(data);
   }
 
-  const data = await tmdbFetch<TmdbTvDetails>(`/tv/${id}`, params);
+  const data = await tmdbFetch<TmdbTvDetails>(`/tv/${id}`, params, 21600);
   return normalizeTvDetails(data);
 }

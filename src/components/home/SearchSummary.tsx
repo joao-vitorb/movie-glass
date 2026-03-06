@@ -1,66 +1,20 @@
-import type { Mood, StructuredFilters } from "@/types/filters";
 import { Badge } from "@/components/ui/Badge";
+import {
+  getMediaTypeLabel,
+  getMoodLabel,
+  getPaceLabel,
+  getYearLabel,
+} from "@/lib/filter-labels";
+import type { StructuredFilters } from "@/types/filters";
 
 type SearchSummaryProps = {
   filters: StructuredFilters;
 };
 
-function getMediaTypeLabel(mediaType: StructuredFilters["mediaType"]) {
-  if (mediaType === "movie") {
-    return "Filmes";
-  }
-
-  if (mediaType === "tv") {
-    return "Séries";
-  }
-
-  return "Ambos";
-}
-
-function getPaceLabel(pace: StructuredFilters["pace"]) {
-  if (pace === "slow") {
-    return "Lento";
-  }
-
-  if (pace === "medium") {
-    return "Médio";
-  }
-
-  if (pace === "fast") {
-    return "Rápido";
-  }
-
-  return "Sem preferência";
-}
-
-function getMoodLabel(mood: Mood) {
-  if (mood === "dark") {
-    return "Sombrio";
-  }
-
-  if (mood === "intelligent") {
-    return "Inteligente";
-  }
-
-  if (mood === "light") {
-    return "Leve";
-  }
-
-  return "Tenso";
-}
-
-function getYearLabel(filters: StructuredFilters) {
-  if (filters.yearFrom === 0 || filters.yearTo === 0) {
-    return "Qualquer período";
-  }
-
-  return `${filters.yearFrom} - ${filters.yearTo}`;
-}
-
 export function SearchSummary({ filters }: SearchSummaryProps) {
   return (
-    <div className="rounded-[24px] border border-white/16 bg-slate-950/30 p-5">
-      <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+    <div className="rounded-[22px] border border-white/16 bg-slate-950/30 p-5">
+      <p className="text-[11px] uppercase tracking-[0.2em] text-white/42 sm:text-xs">
         resumo da busca ativa
       </p>
 
